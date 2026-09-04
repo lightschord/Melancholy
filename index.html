@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#08111f" />
+  <title>MBTI 인기지역 · Seoul Live Map</title>
+  <link rel="preconnect" href="https://cesium.com" />
+  <link rel="preconnect" href="https://tile.openstreetmap.org" />
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.124/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
+  <link href="style.css" rel="stylesheet" />
+  <script>window.CESIUM_BASE_URL = 'https://cesium.com/downloads/cesiumjs/releases/1.124/Build/Cesium/';</script>
+  <script defer src="https://cesium.com/downloads/cesiumjs/releases/1.124/Build/Cesium/Cesium.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="MBTI 인기지역 홈">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="brand-copy">
+          <span class="eyebrow">SEOUL / LIVE SYNTHETIC MAP</span>
+          <strong>MBTI 인기지역</strong>
+        </span>
+      </a>
+      <div class="topbar-status">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span>브라우저 시뮬레이션</span>
+        <span class="topbar-divider"></span>
+        <span id="topbarClock">--:--:--</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="control-panel" aria-label="지도 분석 컨트롤">
+        <section class="intro-block">
+          <div class="section-kicker">01 / SELECT PROFILE</div>
+          <h1>지금, 어디에<br /><em>모여 있을까?</em></h1>
+          <p>선택한 MBTI 사용자의 최근 로그인 위치를 서울 지도 위에서 실시간으로 탐색합니다.</p>
+        </section>
+
+        <section class="selector-block panel-section">
+          <label class="field-label" for="mbtiSelect">분석할 MBTI</label>
+          <div class="select-wrap">
+            <select id="mbtiSelect" aria-label="분석할 MBTI 선택">
+              <option value="INFP">INFP · 중재자</option>
+              <option value="ENFP">ENFP · 활동가</option>
+              <option value="INFJ">INFJ · 옹호자</option>
+              <option value="INTJ">INTJ · 전략가</option>
+              <option value="INTP">INTP · 논리술사</option>
+              <option value="ENTP">ENTP · 변론가</option>
+              <option value="ENFJ">ENFJ · 선도자</option>
+              <option value="ENTJ">ENTJ · 통솔자</option>
+              <option value="ISFP">ISFP · 모험가</option>
+              <option value="ESFP">ESFP · 연예인</option>
+              <option value="ISFJ">ISFJ · 수호자</option>
+              <option value="ESFJ">ESFJ · 집정관</option>
+              <option value="ISTP">ISTP · 장인</option>
+              <option value="ESTP">ESTP · 사업가</option>
+              <option value="ISTJ">ISTJ · 현실주의자</option>
+              <option value="ESTJ">ESTJ · 경영자</option>
+            </select>
+          </div>
+          <div class="profile-chip"><span id="profileColor" class="profile-color"></span><span id="profileDescription">감각적인 아이디어가 흐르는 곳</span></div>
+        </section>
+
+        <section class="time-block panel-section">
+          <div class="section-kicker">02 / ACTIVE WINDOW</div>
+          <div class="time-row">
+            <span>현재 시각</span>
+            <strong id="currentTime">--:--:--</strong>
+          </div>
+          <div class="time-row range-row">
+            <span>최근 1시간</span>
+            <strong id="analysisRange">--:-- ~ --:--</strong>
+          </div>
+          <div class="window-bar" aria-hidden="true"><span></span></div>
+          <p class="muted-copy">로그인 시각이 범위의 양 끝을 포함할 때만 분석 대상이 됩니다.</p>
+        </section>
+
+        <section class="metrics-grid panel-section" aria-label="분석 통계">
+          <article class="metric-card metric-card-primary">
+            <span class="metric-label">활성 로그인</span>
+            <strong id="activeUsers">0</strong>
+            <span class="metric-unit">명 / 최근 1시간</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">생성 Cluster</span>
+            <strong id="clusterCount">0</strong>
+            <span class="metric-unit">개 지역 단위</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">최대 Cluster</span>
+            <strong id="largestCluster">0</strong>
+            <span class="metric-unit">명 집중</span>
+          </article>
+        </section>
+
+        <section class="pulse-block panel-section">
+          <div class="pulse-header">
+            <div>
+              <div class="section-kicker">LIVE PULSE</div>
+              <strong>시뮬레이션 활동</strong>
+            </div>
+            <span id="simulationStatus" class="pulse-status">RUNNING</span>
+          </div>
+          <div class="pulse-line"><span id="newLoginCount">0</span><span>명이 방금 새로운 위치에서 로그인했습니다.</span></div>
+          <div class="pulse-track"><span id="pulseTrackFill"></span></div>
+        </section>
+
+        <div class="panel-spacer"></div>
+        <section class="data-notice">
+          <div class="notice-icon" aria-hidden="true">i</div>
+          <div>
+            <strong>DEMO / SYNTHETIC DATA</strong>
+            <p>표시되는 MBTI, 로그인 위치와 인기지역은 기능 테스트를 위해 생성된 가상 데이터입니다. 실제 MBTI 행동 특성이나 지역 선호도를 의미하지 않습니다.</p>
+          </div>
+        </section>
+        <footer class="panel-footer"><span>5,000 FAKE USERS</span><span>·</span><span>SEOUL ONLY</span><span>·</span><span>NO BACKEND</span></footer>
+      </aside>
+
+      <section class="map-panel" aria-label="서울 MBTI 인기지역 지도">
+        <div id="cesiumContainer" class="map-container"></div>
+        <div class="map-gradient" aria-hidden="true"></div>
+        <div id="mapLoading" class="map-loading">
+          <span class="loading-spinner"></span>
+          <strong>서울 지도를 불러오는 중</strong>
+          <span>CesiumJS · Frontend Only</span>
+        </div>
+        <div id="mapError" class="map-error" hidden>
+          <strong>지도를 불러오지 못했습니다.</strong>
+          <span>CesiumJS CDN 또는 지도 타일 네트워크 연결을 확인해주세요.</span>
+        </div>
+        <div class="map-toolbar">
+          <div class="map-location"><span class="location-pin" aria-hidden="true"></span><span>SEOUL, REPUBLIC OF KOREA</span></div>
+          <div class="map-actions">
+            <button id="zoomIn" class="map-button" type="button" aria-label="지도 확대">+</button>
+            <button id="zoomOut" class="map-button" type="button" aria-label="지도 축소">−</button>
+            <button id="resetView" class="map-button reset-button" type="button" aria-label="서울 중심으로 돌아가기">◎</button>
+          </div>
+        </div>
+        <div class="map-caption"><span class="caption-line"></span><span>RECENT LOGIN DENSITY</span><span class="caption-detail">카메라 고도에 따라 군집 해상도가 변합니다</span></div>
+        <div class="map-legend">
+          <div class="legend-title"><span id="legendMbti">INFP</span><span>· 활동 밀도</span></div>
+          <div class="legend-scale"><span class="legend-bubble small"></span><span class="legend-bubble medium"></span><span class="legend-bubble large"></span><div class="legend-labels"><span>1</span><span>20</span><span>50+</span></div></div>
+          <div class="camera-readout"><span>CAMERA HEIGHT</span><strong id="cameraHeight">--</strong><span class="camera-divider"></span><span id="gridSizeLabel">--</span></div>
+        </div>
+        <div id="clusterPopup" class="cluster-popup" hidden role="dialog" aria-label="Cluster 상세 정보">
+          <button id="closePopup" class="popup-close" type="button" aria-label="상세 정보 닫기">×</button>
+          <div class="popup-kicker"><span id="popupSwatch" class="popup-swatch"></span><span id="popupMbti">INFP</span><span> / HOTSPOT</span></div>
+          <strong id="popupPlace" class="popup-place">홍대 인근</strong>
+          <div class="popup-stat"><span>최근 1시간 로그인</span><strong id="popupCount">0명</strong></div>
+          <div class="popup-stat"><span>분석 기준</span><span>실시간 Synthetic GPS</span></div>
+          <div id="popupPosition" class="popup-position">37.0000, 127.0000</div>
+        </div>
+        <div class="map-attribution">© OpenStreetMap contributors · CesiumJS</div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
