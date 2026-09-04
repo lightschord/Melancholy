@@ -1,2 +1,0 @@
-# Melancholy
-Toy Project
